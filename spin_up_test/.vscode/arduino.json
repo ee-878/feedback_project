@@ -1,0 +1,6 @@
+{
+    "board": "arduino:avr:micro",
+    "programmer": "avrisp",
+    "port": "/dev/tty.usbmodem212101",
+    "sketch": "spin_up_test.ino"
+}

@@ -1,0 +1,6 @@
+{
+    "board": "arduino:avr:micro",
+    "port": "/dev/tty.usbmodem212101",
+    "programmer": "avrisp",
+    "sketch": "pendulum_control_1/pendulum_control_1.ino"
+}

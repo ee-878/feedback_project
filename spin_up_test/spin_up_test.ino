@@ -80,45 +80,17 @@ void setup() {
 
   pinMode(ENCODER_1_A, INPUT_PULLUP);  // sets the Encoder_output_A pin as the input
   pinMode(ENCODER_1_B, INPUT_PULLUP);  // sets the Encoder_output_B pin as the input
+
   attachInterrupt(digitalPinToInterrupt(ENCODER_1_A), encoder_1_interrupt, RISING);
 }
 
 void loop() {
-  double t = millis()/1000.0;
-
-  anglePrevTime = angleCurrentTime;
-  angleCurrentTime = micros();
-  angleDt = (double)(angleCurrentTime - anglePrevTime)/(1.0*pow(10, 6)); // microseconds
-  Serial.print("dt: ");
-  Serial.println(angleDt);
-
-  double kp = 0.05;
-  double kd = 0.05;
-  double ki = 0.075;
-  double ref = 0.0;
-  double error = ref - currentAngle;
-  currentAngleInt = (prevAngle + currentAngle)*angleDt;
-  double controlOutput = -(kp*currentAngle + kd*currentAngleDer + ki*currentAngleInt); // in Volts
-  Serial.print("Control: ");
-  Serial.println(controlOutput);
-  controlOutput = round((controlOutput/5.0)*255); //map to 0 to 255 for pwm, allow for over/under that as wells
-  if (controlOutput >= 0) {
-    motor1.reverse();
-  }
-  if (controlOutput < 0) {
-    motor1.forward();
-    controlOutput = abs(controlOutput);
-  }
-  if (controlOutput > 255) {
-    controlOutput = 255;
-  }  
-  Serial.print("FinalControl: ");
-  Serial.println(controlOutput);
-  motor1.setPWM(controlOutput);
-  double motor1Speed = motor1.getSpeed();
-  Serial.print(">motor1Speed:");
-  Serial.println(motor1Speed);
-
+  motor1.forward();
+  double max_voltage = 12.0;
+  double voltage = 12.0;
+  double pwm_input = round((voltage/max_voltage)*255.0);
+  motor1.setPWM(pwm_input);
+  delay(500);
 }
 
 void encoder_1_interrupt() {
@@ -137,12 +109,19 @@ void encoder_1_interrupt() {
     prevAngle = currentAngle;
     currentAngle = prevAngle - dTheta;
   }
+  if (abs(currentAngle) > 360.0)
+  {
+    if (signbit(currentAngle))
+      currentAngle = (currentAngle - 360.0)*-1.0;
+    else
+      currentAngle = currentAngle - 360.0;
+  }
   currentSpeed = calculateMotorSpeed(dTheta, dt);
-  Serial.print("Angle: ");
+  Serial.print(">Angle:");
   Serial.println(currentAngle);
-  Serial.print("Pulses: ");
+  Serial.print(">Pulses:");
   Serial.println(pulses);
-  Serial.print("Speed: ");
+  Serial.print(">Speed:");
   Serial.println(currentSpeed);
 };
 
