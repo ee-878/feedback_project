@@ -87,7 +87,7 @@ void setup() {
 void loop() {
   motor1.forward();
   double max_voltage = 12.0;
-  double voltage = 12.0;
+  double voltage = 3.0;
   double pwm_input = round((voltage/max_voltage)*255.0);
   motor1.setPWM(pwm_input);
   delay(500);
@@ -123,6 +123,8 @@ void encoder_1_interrupt() {
   Serial.println(pulses);
   Serial.print(">Speed:");
   Serial.println(currentSpeed);
+  Serial.print(">Time:");
+  Serial.println(currentTime);
 };
 
 double calculateMotorSpeed(int dTheta, long double dt) {
