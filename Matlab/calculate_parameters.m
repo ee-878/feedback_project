@@ -28,8 +28,8 @@ K_b = K_t;
 % calculate L and b by matching w 1st order transfer function
 tau = 0.125;
 G_dc = 2.65;
-b_ = (K_t/G_dc - K_b*K_t)/R
-L_ = ((K_t/tau - K_b*K_t)/R)/b_
+% b_ = (K_t/G_dc - K_b*K_t)/R
+% L_ = ((K_t/tau - K_b*K_t)/R)/b_
 syms L b
 eq2 = K_t/(K_b*K_t + R*b) == G_dc;
 % assume(b, 'positive');
