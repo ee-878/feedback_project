@@ -32,7 +32,7 @@ numeric_data(:,3) = deg2rad(numeric_data(:,3));
 numeric_data(:,3) = filtfilt(b,a,numeric_data(:,3));
 
 s = tf('s');
-G_dc = 2.65;
+G_dc = 2.7;
 tau = 0.125;
 guess = G_dc/(tau*s + 1);
 config = stepDataOptions('StepAmplitude', 7);
