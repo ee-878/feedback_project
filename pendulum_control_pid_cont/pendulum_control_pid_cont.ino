@@ -22,6 +22,11 @@ double currentAngleInt = 0.0;
 int direction = 0;
 int prevDirection = 0;
 
+double error = 0.0;
+double prev_error = 0.0;
+double error_derivative = 0.0;
+double error_int = 0.0;
+
 volatile long pulses;
 static volatile long prev_pulses;
 volatile double currentSpeed;
@@ -81,25 +86,37 @@ void setup() {
   pinMode(ENCODER_1_A, INPUT_PULLUP);  // sets the Encoder_output_A pin as the input
   pinMode(ENCODER_1_B, INPUT_PULLUP);  // sets the Encoder_output_B pin as the input
   attachInterrupt(digitalPinToInterrupt(ENCODER_1_A), encoder_1_interrupt, RISING);
+  attachInterrupt(digitalPinToInterrupt(ENCODER_1_B), encoder_quad_interrupt, FALLING);
 }
 
 void loop() {
   double t = millis()/1000.0;
 
+
+
   anglePrevTime = angleCurrentTime;
   angleCurrentTime = micros();
   angleDt = (double)(angleCurrentTime - anglePrevTime)/(1.0*pow(10, 6)); // microseconds
-  Serial.print("dt: ");
-  Serial.println(angleDt);
+  //Serial.print("dt: ");
+  //Serial.println(angleDt);
 
-  double kp = 0.05;
-  double kd = 0.05;
+  double kp = 0.15;
+  double kd = 0.015;
   double ki = 0.075;
-  double ref = 0.0;
-  double error = ref - currentAngle;
+  double ref = 30.0;
+  prev_error = error;
+  error = ref*(PI/180.0) - currentAngle;
+  error_derivative = (error - prev_error)/angleDt;
+  error_int = error_int + error*angleDt;
   currentAngleInt = (prevAngle + currentAngle)*angleDt;
-  double controlOutput = -(kp*currentAngle + kd*currentAngleDer + ki*currentAngleInt); // in Volts
-  Serial.print("Control: ");
+  double controlOutput = (kp*error + kd*error_derivative + ki*error_int); // in Volts
+  Serial.print(">error:");
+  Serial.println(error);
+  Serial.print("error_derivative:");
+  Serial.println(error_derivative);
+  Serial.print(">error_int:");
+  Serial.println(error_int);
+  Serial.print(">Voltage:");
   Serial.println(controlOutput);
   controlOutput = round((controlOutput/5.0)*255); //map to 0 to 255 for pwm, allow for over/under that as wells
   if (controlOutput >= 0) {
@@ -112,12 +129,12 @@ void loop() {
   if (controlOutput > 255) {
     controlOutput = 255;
   }  
-  Serial.print("FinalControl: ");
-  Serial.println(controlOutput);
+  //Serial.print(">FinalControl: ");
+  //Serial.println(controlOutput);
   motor1.setPWM(controlOutput);
   double motor1Speed = motor1.getSpeed();
-  Serial.print(">motor1Speed:");
-  Serial.println(motor1Speed);
+  //Serial.print("motor1Speed:");
+  //Serial.println(motor1Speed);
 
 }
 
@@ -127,7 +144,8 @@ void encoder_1_interrupt() {
   dt = (double)(currentTime - prevTime)/(1.0*pow(10, 6)); // microseconds
   prev_pulses = pulses;
   int b = digitalRead(ENCODER_1_B);
-  double dTheta = 360.0/245.0; //degrees (pulses)
+  //double dTheta = (360.0)/(245.0*2.0); //degrees (pulses)
+  double dTheta = 360.0/(488.0);
   if (b > 0) {
     pulses++;
     prevAngle = currentAngle;
@@ -138,11 +156,37 @@ void encoder_1_interrupt() {
     currentAngle = prevAngle - dTheta;
   }
   currentSpeed = calculateMotorSpeed(dTheta, dt);
-  Serial.print("Angle: ");
+  Serial.print(">Angle:");
   Serial.println(currentAngle);
-  Serial.print("Pulses: ");
+  Serial.print("Pulses:");
   Serial.println(pulses);
-  Serial.print("Speed: ");
+  Serial.print(">Speed:");
+  Serial.println(currentSpeed);
+};
+
+void encoder_quad_interrupt() {
+  prevTime = currentTime;
+  currentTime = micros();
+  dt = (double)(currentTime - prevTime)/(1.0*pow(10, 6)); // microseconds
+  prev_pulses = pulses;
+  int b = digitalRead(ENCODER_1_A);
+  //double dTheta = (360.0)/(245.0*2.0); //degrees (pulses)
+  double dTheta = 360.0/(488.0);
+  if (b > 0) {
+    pulses++;
+    prevAngle = currentAngle;
+    currentAngle = prevAngle + dTheta;
+  } else {
+    pulses--;
+    prevAngle = currentAngle;
+    currentAngle = prevAngle - dTheta;
+  }
+  currentSpeed = calculateMotorSpeed(dTheta, dt); // TODO: fix this function, only reports 0 currently
+  Serial.print(">Angle:");
+  Serial.println(currentAngle);
+  Serial.print(">Pulses:");
+  Serial.println(pulses);
+  Serial.print(">Speed:");
   Serial.println(currentSpeed);
 };
 
