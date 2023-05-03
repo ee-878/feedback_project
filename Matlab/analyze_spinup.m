@@ -27,9 +27,18 @@ numeric_data(:,4) = numeric_data(:,4)./(1E6); % seconds
 %     numeric_data(k,3) = numeric_data(k-1,3) + numeric_data(k,3)*dt;
 % end
 
-% numeric_data(:,3) = deg2rad(numeric_data(:,3));
-% [b, a] = butter(2, 0.035);
-% numeric_data(:,3) = filtfilt(b,a,numeric_data(:,3));
+% <<<<<<< Updated upstream
+% % numeric_data(:,3) = deg2rad(numeric_data(:,3));
+% % [b, a] = butter(2, 0.035);
+% % numeric_data(:,3) = filtfilt(b,a,numeric_data(:,3));
+% =======
+% % speed = diff(numeric_data(:,1))./diff(numeric_data(:,4).*1E6);
+
+numeric_data(:,3) = deg2rad(numeric_data(:,3));
+[b, a] = butter(2, 0.035);
+
+numeric_data(:,3) = filtfilt(b,a,numeric_data(:,3));
+% >>>>>>> Stashed changes
 
 s = tf('s');
 G_dc = 2.65;

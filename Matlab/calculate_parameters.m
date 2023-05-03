@@ -22,7 +22,7 @@ no_load_rpm = 208;
 no_load_current = 0.15; %A
 gear_ratio = 35; % 35:1
 
-K_t = T_stall/I_stall;
+K_t = (T_stall/I_stall);
 K_b = K_t;
 
 % calculate L and b by matching w 1st order transfer function
@@ -31,7 +31,7 @@ G_dc = 2.65;
 % b_ = (K_t/G_dc - K_b*K_t)/R
 % L_ = ((K_t/tau - K_b*K_t)/R)/b_
 syms L b
-eq2 = K_t/(K_b*K_t + R*b) == G_dc;
+eq2 = gear_ratio*K_t/(K_b*K_t + R*b) == G_dc;
 % assume(b, 'positive');
 % assume(L, 'positive');
 Y = solve(eq2, b);
@@ -41,7 +41,7 @@ Y = solve(eq1, L)
 L = double(Y)
 
 s = tf('s');
-sys = K_t/(L*b*s + K_t*K_b+R*b)
+sys = gear_ratio*K_t/(L*b*s + K_t*K_b+R*b)
 
 % omega/v step response
 figure
